@@ -1,6 +1,8 @@
 import Foundation
 import Logging
+#if os(iOS)
 import UIKit
+#endif
 import Network
 
 
@@ -58,11 +60,15 @@ public class ReefReferral {
         reefReferralInternal.setUserId(id)
     }
 
+    public func canHandleDeepLink(url: URL) -> Bool {
+        reefReferralInternal.canHandleDeepLink(url: url)
+    }
 
     public func handleDeepLink(url: URL) {
         reefReferralInternal.handleDeepLink(url: url)
     }
 
+#if os(iOS)
     /// Helper function, use on UIWindowSceneDelegate.func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>)
     public func handleDeepLink(URLContexts: Set<UIOpenURLContext>) {
         for link in URLContexts {
@@ -74,6 +80,7 @@ public class ReefReferral {
     public func handleDeepLink(connectionOptions: UIScene.ConnectionOptions) {
         handleDeepLink(URLContexts: connectionOptions.urlContexts)
     }
+#endif
 
     public func setUserID(id: String)  {
         reefReferralInternal.setUserId(id)

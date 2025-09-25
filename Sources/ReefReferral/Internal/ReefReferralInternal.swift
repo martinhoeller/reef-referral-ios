@@ -7,7 +7,11 @@
 
 import Foundation
 import Logging
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 import Network
 
 protocol ReefReferralDelegatePassThrough {
@@ -95,12 +99,21 @@ class ReefReferralInternal {
 
         self.refresh()
 
+#if os(macOS)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refresh),
+            name: NSApplication.didBecomeActiveNotification,
+            object: nil
+        )
+#else
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(refresh),
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
+#endif
     }
 
     @objc
@@ -138,13 +151,19 @@ class ReefReferralInternal {
     }
 
     // MARK: - Receiver
+    func canHandleDeepLink(url: URL) -> Bool {
+        guard let scheme = url.scheme,
+              scheme.starts(with: "reef-referral") else {
+            // not a reef referral link
+            return false
+        }
+        return true
+    }
 
     func handleDeepLink(url: URL) {
         Task {
 
-            guard let scheme = url.scheme,
-               scheme.starts(with: "reef-referral") else {
-                // not a reef referral link
+            guard canHandleDeepLink(url: url) else {
                 return
             }
 
@@ -167,7 +186,11 @@ class ReefReferralInternal {
                     self.updateData(receiver: referredInfo)
 
                     if let url = referredInfo.appleOfferURL, referredInfo.offer_automatic_redirect {
+                        #if os(macOS)
+                        NSWorkspace.shared.open(url)
+                        #else
                         UIApplication.shared.open(url)
+                        #endif
                     }
                 }
 
